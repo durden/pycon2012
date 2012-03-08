@@ -1,0 +1,108 @@
+Bob Hancock
+
+- bobhancock.org
+- hancock.robert@gmail.com
+- https://github.com/bobhancock
+- @bob_hancock
+
+Concurrency:
+    - Mulitple things going on at the same time that need to communicate
+      together.
+
+Parallelism:
+    - Taking several processes that are not dependent on each other and shoving
+      them down parallel pipelines
+
+- Interrupts are for hardware to talk to kernel
+- Traps are the system calls from user space
+
+Mode switch:
+    - Swapping from user mode to kernel mode (system call)
+
+Context switch:
+    - Saving information for a process and taking on another one
+    - Think of as pushing process information on the stack when cpu switches to
+      another application
+    - Major limiting factor when running parallel program
+
+- Threads cost less
+    - Doing context switches is cheaper b/c they share memory.  You have to
+      copy a lot less memory in the switch.
+
+- Forking new process is expensive
+
+Linux tasks:
+    - Doesn't distinguish between a process and a thread at the OS level.
+    - Everything is a task
+
+GIL:
+    - Mutex that prevents multiple native threads from executing Python
+      bytecodes at the same time.
+    - Python threads are real OS level threads (i.e. controlled by OS)
+    - Keeps track of all threads in a Python process to prevent problems with
+      CPython's memory management not being thread-safe.
+    - Threads in 2.7 GIL threaded processes on multicore machines is slower.
+    - 3.2 GIL is much better but still doesn't have priority scheduling
+    - ** Causes IO bound threads to be scheduled ahead of CPU bound threads
+
+Generators:
+    - In general mostly just save you memory b/c it's on demand
+
+** orthogonal - Small independent processes
+
+Generator pipelines:
+    - Like shell pipes
+
+Coroutines:
+    - Coroutines are functions that save control state between calls
+    - Coroutines will execute when values are sent to them
+        - Consume a value and give something back
+        - Different from generator b/c generators only generate values and are
+          used for iteration
+    - Using yield as an expression allows you to create coroutines
+
+Worthwhile Optimizations:
+    - Everything is compounded at scale
+        - Multiple threads means much more context switching, so it can get
+          slower even though you supposedly have concurrency.
+        - Don't spend all your time switching contexts
+    - List comprehensions are faster than loops
+    - Use CDecimal instead of Decimal
+    - Memoize redundant calculations
+        - Memoization - function calls avoid repeating the same calculation
+            - Slightly different and/or more general than caching, look this up
+
+Greenlets:
+    - Comes from stackless
+    - Allows switching between coroutines anywhere within the stack
+    - You can bounce around the stack sort of like using GOTO
+    - Not stack based like Python coroutines
+
+Coroutines and Threads:
+    - OS doesnt' know anything about coroutines
+    - Coroutines are tied to a thread
+    - Cannot call coroutines across threads
+    - By multiplexing coroutines in one thread you avoid context switches
+
+Packages to look into:
+    - twisted
+    - stackless
+    - eventlet
+    - gevent (wrapper around greenlets)
+        - Spotify is run on this
+    - tornado
+
+How do they work:
+    - monkey patch io functiosnt to make them non-blocking
+    - have event loop that listens for io eligible events
+    - dispatch via cooperative scheduler
+    - asynchronous callbacks
+
+Event loop:
+    - main event loop that services coroutines on a fifo basis
+    - if a cpu bound process blocks your screwed
+        - Seperate out your cpu bound and io bound processes from each other
+Gevent advantages:
+    - No async code like twisted or tornado
+    - Consistent behavior
+
